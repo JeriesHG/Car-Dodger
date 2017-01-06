@@ -12,8 +12,17 @@ public class RoadManager : MonoBehaviour
 	[Header ("Road Settings")]
 	public GameObject mainRoad;
 	public GameObject endRoad;
-	public GameObject[] otherRoads;
-	public float otherRoadChance = 0f;
+
+	[System.Serializable]
+	public struct OtherRoad
+	{
+		public GameObject road;
+		public float chance;
+	}
+
+	public OtherRoad[] otherRoads;
+	public float otherRoadChance;
+
 	private SortedList<float, GameObject> loadedRoads;
 
 	[Header ("Movement")]
@@ -36,7 +45,7 @@ public class RoadManager : MonoBehaviour
 
 			float key = instantiatedRoad.transform.localPosition.y;
 			if (key > Camera.main.orthographicSize)
-				instantiatedRoad.SetActive (false);
+				instantiatedRoad.SetActive (true);
 
 			loadedRoads.Add (key, instantiatedRoad);
 
@@ -51,27 +60,27 @@ public class RoadManager : MonoBehaviour
 	void Update ()
 	{
 		distance += Time.deltaTime * velocity;
-		foreach (float key in loadedRoads.Keys) {
-			GameObject o = loadedRoads [key];
-			Vector3 newPos = o.transform.localPosition;
 
-			newPos.y -= Time.deltaTime * velocity;
-			o.transform.localPosition = newPos;
-
-			if (Mathf.Abs (o.transform.localPosition.y) > Camera.main.orthographicSize + 1)
-				o.SetActive (false);
-			else
-				o.SetActive (true);
-		}
+		Vector3 newPos = roadHolder.transform.localPosition;
+		newPos.y -= Time.deltaTime * velocity;
+		roadHolder.transform.localPosition = newPos;
 	}
 
 	private GameObject getInstantiatedRoad (GameObject selectedRoad, int i)
 	{
 		GameObject instantiatedRoad = null;
 
-		Transform loadedRoadTransform = (loadedRoads.Count == 0) ? startArea : loadedRoads [loadedRoads.Keys [i - 1]].transform;
-		int tilesDistance = selectedRoad.GetComponent<RoadStat> ().tileDistance;
-		Vector2 vector = new Vector2 (loadedRoadTransform.localPosition.x, loadedRoadTransform.position.y + tilesDistance);
+		int tilesDistance = 0;
+		Transform loadedRoadTransform = null;
+		if (loadedRoads.Count == 0) {
+			loadedRoadTransform = startArea;
+		} else {
+			GameObject previousRoad = loadedRoads [loadedRoads.Keys [i - 1]];
+			tilesDistance = (int)previousRoad.GetComponent<Tile2D.TileRoom2D> ().roomSize.y;
+			loadedRoadTransform = previousRoad.transform;
+		}
+
+		Vector2 vector = new Vector2 (loadedRoadTransform.localPosition.x, loadedRoadTransform.localPosition.y + tilesDistance);
 		instantiatedRoad = (GameObject)Instantiate (selectedRoad, vector, Quaternion.identity);
 		instantiatedRoad.transform.parent = roadHolder.transform;
 
@@ -80,16 +89,22 @@ public class RoadManager : MonoBehaviour
 
 	private GameObject getRoad ()
 	{
-		if (otherRoads.Length == 0 || Random.value > otherRoadChance) {
-			return mainRoad;
-		} else {
-			return getRandomRoad ();
+		GameObject road = mainRoad;
+
+		float randomValue = Random.value;
+		foreach (OtherRoad e in otherRoads) {
+			if (e.chance > randomValue) {
+				road = e.road;
+				break;
+			}
 		}
+
+		return road;
 	}
 
-	private GameObject getRandomRoad ()
+	private OtherRoad getRandomRoad ()
 	{
-		GameObject road = null;
+		OtherRoad road = new OtherRoad ();
 
 		int randomIndex = Random.Range (0, otherRoads.Length);
 		road = otherRoads [randomIndex];

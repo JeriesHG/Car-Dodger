@@ -21,7 +21,6 @@ public class RoadManager : MonoBehaviour
 	}
 
 	public OtherRoad[] otherRoads;
-	public float otherRoadChance;
 
 	private SortedList<float, GameObject> loadedRoads;
 

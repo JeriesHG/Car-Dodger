@@ -43,8 +43,8 @@ public class RoadManager : MonoBehaviour
 			GameObject instantiatedRoad = getInstantiatedRoad (selectedRoad, i);
 
 			float key = instantiatedRoad.transform.localPosition.y;
-			if (key > Camera.main.orthographicSize)
-				instantiatedRoad.SetActive (true);
+			if (key > Camera.main.orthographicSize + 1)
+				instantiatedRoad.transform.GetChild (0).gameObject.SetActive (false);
 
 			loadedRoads.Add (key, instantiatedRoad);
 

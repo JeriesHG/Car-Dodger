@@ -13,13 +13,6 @@ public class RoadManager : MonoBehaviour
 	public GameObject mainRoad;
 	public GameObject endRoad;
 
-	[System.Serializable]
-	public struct OtherRoad
-	{
-		public GameObject road;
-		public float chance;
-	}
-
 	public OtherRoad[] otherRoads;
 
 	private SortedList<float, GameObject> loadedRoads;
@@ -28,7 +21,7 @@ public class RoadManager : MonoBehaviour
 	public float velocity;
 	public float distance;
 
-	void Start ()
+	void Awake ()
 	{
 		initializeRoads ();
 	}
@@ -43,7 +36,7 @@ public class RoadManager : MonoBehaviour
 			GameObject instantiatedRoad = getInstantiatedRoad (selectedRoad, i);
 
 			float key = instantiatedRoad.transform.localPosition.y;
-			if (key > Camera.main.orthographicSize + 1)
+			if (key > Camera.main.orthographicSize + 2)
 				instantiatedRoad.transform.GetChild (0).gameObject.SetActive (false);
 
 			loadedRoads.Add (key, instantiatedRoad);
